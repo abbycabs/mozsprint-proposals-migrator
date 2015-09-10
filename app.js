@@ -27,8 +27,8 @@ app.get("/migrate-issues", function(req, res) {
   var rowsFailed = [];
   var rowsIgnored = [];
   var options = {
-    start: 1, // starts from Row x+1
-    num: 1
+    start: 426, // starts from Row x+1
+    num: 25
   };
 
   fetchDataFromSpreadsheet(env.get("GOOGLE_SPREADSHEET_ID"), options, function(rows) {
@@ -79,7 +79,7 @@ app.get("/migrate-issues", function(req, res) {
 function fetchDataFromSpreadsheet(spreadsheetID, options, cb) {
   var my_sheet = new GoogleSpreadsheet(spreadsheetID);
   my_sheet.getRows(1, options, function(err, rows){
-    console.log(Object.keys(rows[0]));
+    // console.log(Object.keys(rows[0]));
     cb(rows);
   })
 }
@@ -102,6 +102,7 @@ function postIssue(issue, cb) {
     } else {
       cb(null, "\nSuccessfully migrated '" + issue.title + "' (Issue #" + body.number + ")");
     }
+    // console.log("\n\n response", response);
   });
 }
 
