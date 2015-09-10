@@ -1,0 +1,33 @@
+{
+  "name": "test-mozfest-proposals-migrator",
+  "version": "0.0.1",
+  "description": "",
+  "engines": {
+    "node": "0.10.x"
+  },
+  "private": true,
+  "license": "MPL-2.0",
+  "author": {
+    "name": "Mavis Ou",
+    "url": "https://github.com/mmmavis"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mmmavis/test-mozfest-proposals-migrator"
+  },
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "chalk": "^1.1.1",
+    "express": "^4.13.3",
+    "google-spreadsheet": "^1.0.1",
+    "habitat": "^3.1.2",
+    "request": "^2.61.0",
+    "tabletop": "^1.4.2",
+    "underscore": "^1.8.3"
+  },
+  "devDependencies": {
+    
+  }
+}
