@@ -14,7 +14,7 @@ var env = new Habitat("", {
   port: 5000
 });
 
-var GITHUB_API_ENDPOINT = "https://api.github.com";
+var GITHUB_API_ISSUES_ENDPOINT = "https://api.github.com/repos/" + env.get("GITHUB_REPO") + "/issues"
 var ROW_NUMBER_TO_START = 451; // this is the row # you want to fetch proposal data from. e.g., 2 means you want to fetch data from the first submitted proposal (Row#2)  
 var TOTAL_ROWS_TO_FETCH = 44;
 var POST_TO_GITHUB_DELAY_SECS = 3;
@@ -40,6 +40,7 @@ var postLog = {
   rowsFailed: [],
   rowsIgnored: []
 };
+var logFileContent = "";
 
 fetchDataFromSpreadsheet(env.get("GOOGLE_SPREADSHEET_ID"), fetchOptions, function(rows) {
   allProposals = rows;
@@ -53,24 +54,26 @@ function postToGitHubWithDelay() {
     var rowNum = ROW_NUMBER_TO_START + numFetched;
     if ( numFetched < numProposals ){
       if (proposal.dontmigrate) {
+        var ignoredMsg = "Row #" + rowNum + " was ignored";
         postLog.numIgnored++;
         postLog.rowsIgnored.push(rowNum);
-        console.log(chalk.yellow("Row #" + rowNum + " was ignored"));
         numFetched++;
-        printCurrentReport();
+        console.log(chalk.yellow(ignoredMsg));
+        printCurrentReport(ignoredMsg);
         postToGitHubWithDelay();
       } else {
         postIssue( generateIssue(proposal, rowNum), function(error, successMsg) {
+          numFetched++;
           if (error) {
-            console.log(chalk.red(error));
             postLog.numFailed++;
             postLog.rowsFailed.push(rowNum);
+            console.log(chalk.red(error));
+            printCurrentReport(error);
           } else {
-            console.log(chalk.green(successMsg));
             postLog.numMigrated++;
+            console.log(chalk.green(successMsg));
+            printCurrentReport(successMsg);
           }
-          numFetched++;
-          printCurrentReport();
 
           // print out the final result
           if ( (postLog.numMigrated+postLog.numFailed+postLog.numIgnored) == TOTAL_ROWS_TO_FETCH ) {
@@ -99,7 +102,7 @@ function fetchDataFromSpreadsheet(spreadsheetID, options, cb) {
 function postIssue(issue, cb) {
   var options = {
     method: "POST",
-    url: GITHUB_API_ENDPOINT + "/repos/" + env.get("GITHUB_REPO") + "/issues",
+    url: GITHUB_API_ISSUES_ENDPOINT,
     body: {
       title: issue.title,
       body: issue.body
@@ -144,8 +147,10 @@ function generateFinalReport(timestamp) {
   }
 }
 
-function printCurrentReport() {
-  console.log(generateCurrentReport());
+function printCurrentReport(addtionalMsg) {
+  var currentReport = generateCurrentReport();
+  console.log(currentReport);
+  logFileContent += addtionalMsg + "\n" + currentReport + "\n";
 }
 
 function printFinalReport(finalReport) {
@@ -172,10 +177,13 @@ function printProposal() {
 }
 
 function writeToLogFile(finalReport) {
-  var fileContent = finalReport.header + "\n" +
+  var fileContent = logFileContent + "\n\n\n" +
+                    finalReport.header + "\n" +
                     finalReport.timestamp + "\n" +
                     finalReport.detail + "\n" +
-                    finalReport.footer;
+                    finalReport.footer + "\n\n" +
+                    "Issues have been posted to https://github.com/" + env.get("GITHUB_REPO") + "/issues" + "\n" + 
+                    "(data exported from Google Spreadsheet ID: " + env.get("GOOGLE_SPREADSHEET_ID");
 
   mkdirp(LOG_DIR_PATH, function (err) {
     if (err) {
