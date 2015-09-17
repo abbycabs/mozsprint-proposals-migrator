@@ -88,6 +88,42 @@ function postToGitHubWithDelay() {
   }, POST_TO_GITHUB_DELAY_SECS*1000);
 }
 
+function fetchDataFromSpreadsheet(spreadsheetID, options, cb) {
+  var my_sheet = new GoogleSpreadsheet(spreadsheetID);
+  my_sheet.getRows(2, options, function(err, rows){
+    // console.log(Object.keys(rows[0]));
+    cb(rows);
+  })
+}
+
+function postIssue(issue, cb) {
+  var options = {
+    method: "POST",
+    url: GITHUB_API_ENDPOINT + "/repos/" + env.get("GITHUB_REPO") + "/issues",
+    body: {
+      title: issue.title,
+      body: issue.body
+    }
+  };
+  var userCreds = {
+    username: env.get("GITHUB_USERNAME"),
+    password: env.get("GITHUB_PASSWORD")
+  };
+
+  githubRequest(options, userCreds, function(error, response, body) {
+    if (error) {
+      cb(err);
+    } 
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      cb(new Error("Response status HTTP " + response.statusCode + ", Github error message: " + response.body.message));
+    } else {
+      cb(null, "Successfully migrated '" + issue.title + "' (Issue #" + body.number + ")");
+    }
+    // console.log("\n\n response", response);
+  });
+}
+
 function generateCurrentReport() {
   return  "numFetched = " + numFetched + "\n" +
           "  numMigrated: " + postLog.numMigrated + "\n" +
@@ -133,42 +169,6 @@ function printProposal() {
       console.log("/// ELSE ///");
     }
   }, POST_TO_GITHUB_DELAY_SECS*1000);
-}
-
-function fetchDataFromSpreadsheet(spreadsheetID, options, cb) {
-  var my_sheet = new GoogleSpreadsheet(spreadsheetID);
-  my_sheet.getRows(2, options, function(err, rows){
-    // console.log(Object.keys(rows[0]));
-    cb(rows);
-  })
-}
-
-function postIssue(issue, cb) {
-  var options = {
-    method: "POST",
-    url: GITHUB_API_ENDPOINT + "/repos/" + env.get("GITHUB_REPO") + "/issues",
-    body: {
-      title: issue.title,
-      body: issue.body
-    }
-  };
-  var userCreds = {
-    username: env.get("GITHUB_USERNAME"),
-    password: env.get("GITHUB_PASSWORD")
-  };
-
-  githubRequest(options, userCreds, function(error, response, body) {
-    if (error) {
-      cb(err);
-    } 
-
-    if (response.statusCode != 200 && response.statusCode != 201) {
-      cb(new Error("Response status HTTP " + response.statusCode + ", Github error message: " + response.body.message));
-    } else {
-      cb(null, "Successfully migrated '" + issue.title + "' (Issue #" + body.number + ")");
-    }
-    // console.log("\n\n response", response);
-  });
 }
 
 function writeToLogFile(finalReport) {
