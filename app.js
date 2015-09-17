@@ -50,20 +50,18 @@ fetchDataFromSpreadsheet(env.get("GOOGLE_SPREADSHEET_ID"), fetchOptions, functio
 
 function postToGitHubWithDelay() {
   setTimeout(function(){
-    var proposal = allProposals[0+numFetched];
-    var rowNum = ROW_NUMBER_TO_START + numFetched;
     if ( numFetched < numProposals ){
+      var proposal = allProposals[0+numFetched];
+      var rowNum = ROW_NUMBER_TO_START + numFetched;
+      numFetched++;
       if (proposal.dontmigrate) {
         var ignoredMsg = "Row #" + rowNum + " was ignored";
         postLog.numIgnored++;
         postLog.rowsIgnored.push(rowNum);
-        numFetched++;
         console.log(chalk.yellow(ignoredMsg));
         printCurrentReport(ignoredMsg);
-        postToGitHubWithDelay();
-      } else {
+      } else {  
         postIssue( generateIssue(proposal, rowNum), function(error, successMsg) {
-          numFetched++;
           if (error) {
             postLog.numFailed++;
             postLog.rowsFailed.push(rowNum);
@@ -74,19 +72,14 @@ function postToGitHubWithDelay() {
             console.log(chalk.green(successMsg));
             printCurrentReport(successMsg);
           }
-
-          // print out the final result
-          if ( (postLog.numMigrated+postLog.numFailed+postLog.numIgnored) == TOTAL_ROWS_TO_FETCH ) {
-            var timestamp = moment(Date.now()).format("YYYYMMD-hh.mm.ssA");
-            printFinalReport( generateFinalReport(timestamp) );
-            writeToLogFile( generateFinalReport(timestamp) );
-          }
-
-          postToGitHubWithDelay();
         });
       }
+      postToGitHubWithDelay();
     } else {
-      console.log("/// DONE ///");
+      // done posting, print out the final result
+      var timestamp = moment(Date.now()).format("YYYYMMD-hh.mm.ssA");
+      printFinalReport( generateFinalReport(timestamp) );
+      writeToLogFile( generateFinalReport(timestamp) );
     }
   }, POST_TO_GITHUB_DELAY_SECS*1000);
 }
@@ -161,21 +154,6 @@ function printFinalReport(finalReport) {
   console.log( chalk.bgMagenta.bold(finalReport.footer) );
 }
 
-function printProposal() {
-  setTimeout(function(){
-    if ( numFetched < numProposals ){
-      var currentProposal = allProposals[0+numFetched];
-      console.log(currentProposal.sessionname);
-      printProposal();
-      numFetched++;
-      console.log("numFetched = ", numFetched);
-      console.log("\n");
-    } else {
-      console.log("/// ELSE ///");
-    }
-  }, POST_TO_GITHUB_DELAY_SECS*1000);
-}
-
 function writeToLogFile(finalReport) {
   var fileContent = logFileContent + "\n\n\n" +
                     finalReport.header + "\n" +
@@ -183,7 +161,7 @@ function writeToLogFile(finalReport) {
                     finalReport.detail + "\n" +
                     finalReport.footer + "\n\n" +
                     "Issues have been posted to https://github.com/" + env.get("GITHUB_REPO") + "/issues" + "\n" + 
-                    "(data exported from Google Spreadsheet ID: " + env.get("GOOGLE_SPREADSHEET_ID");
+                    "(data exported from Google Spreadsheet ID: " + env.get("GOOGLE_SPREADSHEET_ID") + ")";
 
   mkdirp(LOG_DIR_PATH, function (err) {
     if (err) {
