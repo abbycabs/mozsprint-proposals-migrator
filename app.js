@@ -16,8 +16,8 @@ var env = new Habitat("", {
 
 var GITHUB_API_ISSUES_ENDPOINT = "https://api.github.com/repos/" + env.get("GITHUB_REPO") + "/issues"
 var ROW_NUMBER_TO_START = 451; // this is the row # you want to fetch proposal data from. e.g., 2 means you want to fetch data from the first submitted proposal (Row#2)  
-var TOTAL_ROWS_TO_FETCH = 44;
-var POST_TO_GITHUB_DELAY_SECS = 3;
+var TOTAL_ROWS_TO_FETCH = 3;
+var POST_TO_GITHUB_DELAY_SECS = 2;
 var LOG_DIR_PATH = "./export-log";
 
 app.set("port", env.get("port"));
