@@ -15,8 +15,9 @@ var env = new Habitat("", {
 });
 
 var GITHUB_API_ISSUES_ENDPOINT = "https://api.github.com/repos/" + env.get("GITHUB_REPO") + "/issues"
-var ROW_NUMBER_TO_START = 451; // this is the row # you want to fetch proposal data from. e.g., 2 means you want to fetch data from the first submitted proposal (Row#2)  
-var TOTAL_ROWS_TO_FETCH = 3;
+// NOTE THIS IS NOT WORKING! FIX BEFORE YOU MIGRATE MORE!
+var ROW_NUMBER_TO_START = 10; // this is the row # you want to fetch proposal data from. e.g., 2 means you want to fetch data from the first submitted proposal (Row#2)
+var TOTAL_ROWS_TO_FETCH = 1;
 var POST_TO_GITHUB_DELAY_SECS = 2;
 var LOG_DIR_PATH = "./export-log";
 
@@ -41,7 +42,6 @@ var postLog = {
   rowsIgnored: []
 };
 var logFileContent = "";
-
 fetchDataFromSpreadsheet(env.get("GOOGLE_SPREADSHEET_ID"), fetchOptions, function(rows) {
   allProposals = rows;
   numProposals = allProposals.length;
@@ -60,7 +60,7 @@ function postToGitHubWithDelay() {
         postLog.rowsIgnored.push(rowNum);
         console.log(chalk.yellow(ignoredMsg));
         printCurrentReport(ignoredMsg);
-      } else {  
+      } else {
         postIssue( generateIssue(proposal, rowNum), function(error, successMsg) {
           if (error) {
             postLog.numFailed++;
@@ -85,10 +85,20 @@ function postToGitHubWithDelay() {
 }
 
 function fetchDataFromSpreadsheet(spreadsheetID, options, cb) {
-  var my_sheet = new GoogleSpreadsheet(spreadsheetID);
-  my_sheet.getRows(2, options, function(err, rows){
-    // console.log(Object.keys(rows[0]));
-    cb(rows);
+  var doc = new GoogleSpreadsheet(spreadsheetID);
+  var my_sheet;
+  doc.getInfo(function(err, info){
+    console.log('Loaded doc: '+info.title+' by '+info.author.email);
+    my_sheet = info.worksheets[0];
+    my_sheet.getRows({offset: 1,
+      limit: 20,
+      orderby: 'col2'}, function(err, rows){
+      // console.log(Object.keys(rows[0]));
+      if(err) {
+        console.error(err);
+      }
+      cb(rows);
+    })
   })
 }
 
@@ -108,8 +118,8 @@ function postIssue(issue, cb) {
 
   githubRequest(options, userCreds, function(error, response, body) {
     if (error) {
-      cb(err);
-    } 
+      cb(error);
+    }
 
     if (response.statusCode != 200 && response.statusCode != 201) {
       cb(new Error("Response status HTTP " + response.statusCode + ", Github error message: " + response.body.message));
@@ -160,7 +170,7 @@ function writeToLogFile(finalReport) {
                     finalReport.timestamp + "\n" +
                     finalReport.detail + "\n" +
                     finalReport.footer + "\n\n" +
-                    "Issues have been posted to https://github.com/" + env.get("GITHUB_REPO") + "/issues" + "\n" + 
+                    "Issues have been posted to https://github.com/" + env.get("GITHUB_REPO") + "/issues" + "\n" +
                     "(data exported from Google Spreadsheet ID: " + env.get("GOOGLE_SPREADSHEET_ID") + ")";
 
   mkdirp(LOG_DIR_PATH, function (err) {
@@ -174,7 +184,7 @@ function writeToLogFile(finalReport) {
           console.log(err);
         }
         console.log(filePath + " was saved!");
-      }); 
+      });
     }
   });
 }

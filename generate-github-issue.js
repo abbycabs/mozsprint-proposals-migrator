@@ -5,15 +5,16 @@ var template = _.template(fs.readFileSync(__dirname + '/issue-template.md','utf-
 
 module.exports = function(proposal, rowNum) {
   var issue = {
-    title: proposal["sessionname"],
+    title: proposal["projectname"],
     body: template({
       rowNum: rowNum,
-      title: proposal["sessionname"],
-      facilitator: proposal["firstname"] + " " + proposal["surname"],
-      description: proposal["description"],
-      agenda: proposal["agenda"],
-      participants: proposal["participants"],
-      outcome: proposal["outcome"]
+      title: proposal["projectname"],
+      facilitator: proposal["projectleadgithub"],
+      description: proposal["projectdescription"],
+      level: proposal["projectlevel"],
+      track: proposal["selectoneormoretracksforyourproject"],
+      githubrepo: proposal["projectrepoifapplicable"],
+      collaborate: proposal["isyourprojectlistedonmozillasciencelabswebsiteseehttpsmozillascience.orgcollaborate"]
     })
   };
   return issue;

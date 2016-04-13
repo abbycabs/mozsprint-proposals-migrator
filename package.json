@@ -1,5 +1,5 @@
 {
-  "name": "test-mozfest-proposals-migrator",
+  "name": "mozsprint-proposals-migrator",
   "version": "0.0.1",
   "description": "",
   "engines": {
@@ -8,12 +8,12 @@
   "private": true,
   "license": "MPL-2.0",
   "author": {
-    "name": "Mavis Ou",
-    "url": "https://github.com/mmmavis"
+    "name": "Abigail Cabunoc Mayes",
+    "url": "https://github.com/acabunoc"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/mmmavis/test-mozfest-proposals-migrator"
+    "url": "https://github.com/acabunoc/mozsprint-proposals-migrator"
   },
   "scripts": {
     "start": "node app.js"
@@ -30,6 +30,6 @@
     "underscore": "^1.8.3"
   },
   "devDependencies": {
-    
+
   }
 }
