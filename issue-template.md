@@ -17,7 +17,9 @@ Congrats, <%= facilitator %>! This is your official project listing for the [Moz
 <% if (collaborate == "No") { %>
 
 #### Do you want to become a featured project?
-Complete the following exercises to be featured in our [collection of open source science projects](https://mozillascience.org/collaborate)! Once you've completed this, contact @acabunoc and you'll be able to submit your project for review.
+Here are some exercises that will help your project be more inviting to new contributors. We hope you'll try to complete some of these as you prepare for #mozsprint.
+
+If you complete *all* the exercises, your project will be eligible to be featured in our [collection of open source science projects](https://mozillascience.org/collaborate)! Once you've finished this list, contact @acabunoc to submit your project for review.
 
 * [ ] [README.md](http://mozillascience.github.io/working-open-workshop/writing_readme/):
 * [ ] [LICENSE](http://choosealicense.com/):
