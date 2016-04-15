@@ -16,7 +16,7 @@ var env = new Habitat("", {
 
 var GITHUB_API_ISSUES_ENDPOINT = "https://api.github.com/repos/" + env.get("GITHUB_REPO") + "/issues"
 // NOTE THIS IS NOT WORKING! FIX BEFORE YOU MIGRATE MORE!
-var ROW_NUMBER_TO_START = 10; // this is the row # you want to fetch proposal data from. e.g., 2 means you want to fetch data from the first submitted proposal (Row#2)
+var ROW_NUMBER_TO_START = 9; // this is the row # you want to fetch proposal data from. e.g., 2 means you want to fetch data from the first submitted proposal (Row#2)
 var TOTAL_ROWS_TO_FETCH = 1;
 var POST_TO_GITHUB_DELAY_SECS = 2;
 var LOG_DIR_PATH = "./export-log";
@@ -90,8 +90,8 @@ function fetchDataFromSpreadsheet(spreadsheetID, options, cb) {
   doc.getInfo(function(err, info){
     console.log('Loaded doc: '+info.title+' by '+info.author.email);
     my_sheet = info.worksheets[0];
-    my_sheet.getRows({offset: 1,
-      limit: 20,
+    my_sheet.getRows({offset: options.start,
+      limit: options.num,
       orderby: 'col2'}, function(err, rows){
       // console.log(Object.keys(rows[0]));
       if(err) {
