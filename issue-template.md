@@ -9,7 +9,7 @@
 ***
 
 ## Note to the Project Lead
-Congrats, <%= facilitator %>! This is your official project listing for the [Mozilla Science Global Sprint 2016](https://www.mozillascience.org/global-sprint-2016). Please comment on this issue to confirm your project submission and complete the following:
+Congrats, <%= facilitator %>! This is your official project listing for the [Mozilla Science Global Sprint 2016](https://www.mozillascience.org/global-sprint-2016). To confirm your submission, please complete the following:
 
 - [<% if (githubrepo) { %>x<% } else { %> <% } %>] Provide a GitHub repository for work and discussion on your project
 - [ ] Confirm in a comment that at least one person will be available to review and answer questions on this project from 9-5 in their timezone on both June 2 & 3.
