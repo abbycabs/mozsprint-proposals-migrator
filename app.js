@@ -54,47 +54,44 @@ app.post('/submit', function(req, res) {
   fetchDataFromSpreadsheet(env.get("GOOGLE_SPREADSHEET_ID"), fetchOptions, function(rows) {
     allProposals = rows;
     numProposals = allProposals.length;
-    postToGitHubWithDelay(
-      {proposals: allProposals, count: numProposals}
-    );
-    res.send("Posted row #" + (fetchOptions.start+1));
+    postToGitHub(
+      {proposals: allProposals, count: numProposals, row: fetchOptions.start}
+    , function(issue){
+        // res.send("Posted row #" + (fetchOptions.start+1));
+        res.send("https://github.com/" + env.get("GITHUB_REPO") + "/issues/" + issue);
+    });
   });
 });
 
-function postToGitHubWithDelay(options) {
-  var fetched = 0;
-  setTimeout(function(){
-    if ( fetched < options.count ){
-      var proposal = options.proposals[0+fetched];
-      var rowNum = ROW_NUMBER_TO_START + fetched;
-      fetched++;
-      if (proposal.dontmigrate) {
-        var ignoredMsg = "Row #" + rowNum + " was ignored";
-        postLog.numIgnored++;
-        postLog.rowsIgnored.push(rowNum);
-        console.log(chalk.yellow(ignoredMsg));
-        printCurrentReport(ignoredMsg);
+function postToGitHub(options, cb) {
+  var proposal = options.proposals[0];
+  var rowNum = options.row;
+  if (proposal.dontmigrate) {
+    var ignoredMsg = "Row #" + rowNum + " was ignored";
+    postLog.numIgnored++;
+    postLog.rowsIgnored.push(rowNum);
+    console.log(chalk.yellow(ignoredMsg));
+    printCurrentReport(ignoredMsg);
+  } else {
+    postIssue( generateIssue(proposal, rowNum), function(error, successMsg) {
+      if (error) {
+        postLog.numFailed++;
+        postLog.rowsFailed.push(rowNum);
+        console.log(chalk.red(error));
+        printCurrentReport(error);
+        cb(error);
       } else {
-        postIssue( generateIssue(proposal, rowNum), function(error, successMsg) {
-          if (error) {
-            postLog.numFailed++;
-            postLog.rowsFailed.push(rowNum);
-            console.log(chalk.red(error));
-            printCurrentReport(error);
-          } else {
-            postLog.numMigrated++;
-            console.log(chalk.green(successMsg));
-            printCurrentReport(successMsg);
-          }
-        });
+        postLog.numMigrated++;
+        console.log(chalk.green(successMsg));
+        printCurrentReport(successMsg);
+        cb(successMsg);
       }
-    } else {
-      // done posting, print out the final result
-      var timestamp = moment(Date.now()).format("YYYYMMD-hh.mm.ssA");
-      printFinalReport( generateFinalReport(timestamp) );
-      writeToLogFile( generateFinalReport(timestamp) );
-    }
-  }, POST_TO_GITHUB_DELAY_SECS*1000);
+    });
+  }
+  // done posting, print out the final result
+  var timestamp = moment(Date.now()).format("YYYYMMD-hh.mm.ssA");
+  printFinalReport( generateFinalReport(timestamp) );
+  writeToLogFile( generateFinalReport(timestamp) );
 }
 
 function fetchDataFromSpreadsheet(spreadsheetID, options, cb) {
@@ -137,7 +134,7 @@ function postIssue(issue, cb) {
     if (response.statusCode != 200 && response.statusCode != 201) {
       cb(new Error("Response status HTTP " + response.statusCode + ", Github error message: " + response.body.message));
     } else {
-      cb(null, "Successfully migrated '" + issue.title + "' (Issue #" + body.number + ")");
+      cb(null, body.number);
     }
     // console.log("\n\n response", response);
   });
