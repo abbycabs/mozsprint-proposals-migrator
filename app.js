@@ -7,6 +7,7 @@ var GoogleSpreadsheet = require("google-spreadsheet");
 var moment = require("moment");
 var generateIssue = require("./generate-github-issue");
 var githubRequest = require("./github-request");
+var bodyParser = require('body-parser')
 
 var Habitat = require("habitat");
 Habitat.load(".env");
@@ -15,13 +16,16 @@ var env = new Habitat("", {
 });
 
 var GITHUB_API_ISSUES_ENDPOINT = "https://api.github.com/repos/" + env.get("GITHUB_REPO") + "/issues"
-// NOTE THIS IS NOT WORKING! FIX BEFORE YOU MIGRATE MORE!
-var ROW_NUMBER_TO_START = 9; // this is the row # you want to fetch proposal data from. e.g., 2 means you want to fetch data from the first submitted proposal (Row#2)
+var ROW_NUMBER_TO_START = 51; // this is the row # you want to fetch proposal data from. e.g., 2 means you want to fetch data from the first submitted proposal (Row#2)
 var TOTAL_ROWS_TO_FETCH = 1;
 var POST_TO_GITHUB_DELAY_SECS = 2;
 var LOG_DIR_PATH = "./export-log";
 
 app.set("port", env.get("port"));
+app.use( bodyParser.json() );
+app.use(bodyParser.urlencoded({   // to support URL-encoded bodies
+  extended: true
+}));
 
 app.get("/", function(req, res) {
   res.send("Hello World :D");
@@ -42,18 +46,28 @@ var postLog = {
   rowsIgnored: []
 };
 var logFileContent = "";
-fetchDataFromSpreadsheet(env.get("GOOGLE_SPREADSHEET_ID"), fetchOptions, function(rows) {
-  allProposals = rows;
-  numProposals = allProposals.length;
-  postToGitHubWithDelay();
+
+
+app.post('/submit', function(req, res) {
+  ROW_NUMBER_TO_START = req.body.rowId;
+  fetchOptions.start = ROW_NUMBER_TO_START-1;
+  fetchDataFromSpreadsheet(env.get("GOOGLE_SPREADSHEET_ID"), fetchOptions, function(rows) {
+    allProposals = rows;
+    numProposals = allProposals.length;
+    postToGitHubWithDelay(
+      {proposals: allProposals, count: numProposals}
+    );
+    res.send("Posted row #" + (fetchOptions.start+1));
+  });
 });
 
-function postToGitHubWithDelay() {
+function postToGitHubWithDelay(options) {
+  var fetched = 0;
   setTimeout(function(){
-    if ( numFetched < numProposals ){
-      var proposal = allProposals[0+numFetched];
-      var rowNum = ROW_NUMBER_TO_START + numFetched;
-      numFetched++;
+    if ( fetched < options.count ){
+      var proposal = options.proposals[0+fetched];
+      var rowNum = ROW_NUMBER_TO_START + fetched;
+      fetched++;
       if (proposal.dontmigrate) {
         var ignoredMsg = "Row #" + rowNum + " was ignored";
         postLog.numIgnored++;
@@ -74,7 +88,6 @@ function postToGitHubWithDelay() {
           }
         });
       }
-      postToGitHubWithDelay();
     } else {
       // done posting, print out the final result
       var timestamp = moment(Date.now()).format("YYYYMMD-hh.mm.ssA");
