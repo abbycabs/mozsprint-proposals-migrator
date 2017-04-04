@@ -11,8 +11,10 @@ var trackMap = {
 }
 
 function formatGitHubId(id) {
-  id.split("/")[-1];
-  id.split("@")[-1];
+  var ids = id.split("/");
+  while(!(id = ids.pop())){}
+  ids = id.split("@");
+  while(!(id = ids.pop())){}
   return "@" + id;
 }
 
