@@ -110,7 +110,8 @@ function postIssue(issue, cb) {
     url: GITHUB_API_ISSUES_ENDPOINT,
     body: {
       title: issue.title,
-      body: issue.body
+      body: issue.body,
+      labels: issue.labels
     }
   };
   var userCreds = {

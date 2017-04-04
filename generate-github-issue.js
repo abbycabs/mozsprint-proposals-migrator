@@ -19,7 +19,6 @@ function formatGitHubId(id) {
 }
 
 module.exports = function(proposal, rowNum) {
-  console.log(proposal);
   var labels = proposal["selectoneormoretracksforyourproject"].split(', ');
   labels = labels.map(function(obj){
     return trackMap[obj] || obj;
