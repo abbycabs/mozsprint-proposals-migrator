@@ -65,28 +65,21 @@ app.post('/submit', function(req, res) {
 function postToGitHub(options, cb) {
   var proposal = options.proposals[0];
   var rowNum = options.row;
-  if (proposal.dontmigrate) {
-    var ignoredMsg = "Row #" + rowNum + " was ignored";
-    postLog.numIgnored++;
-    postLog.rowsIgnored.push(rowNum);
-    console.log(chalk.yellow(ignoredMsg));
-    printCurrentReport(ignoredMsg);
-  } else {
-    postIssue( generateIssue(proposal, rowNum), function(error, successMsg) {
-      if (error) {
-        postLog.numFailed++;
-        postLog.rowsFailed.push(rowNum);
-        console.log(chalk.red(error));
-        printCurrentReport(error);
-        cb(error);
-      } else {
-        postLog.numMigrated++;
-        console.log(chalk.green(successMsg));
-        printCurrentReport(successMsg);
-        cb(successMsg);
-      }
-    });
-  }
+
+  postIssue( generateIssue(proposal, rowNum), function(error, successMsg) {
+    if (error) {
+      postLog.numFailed++;
+      postLog.rowsFailed.push(rowNum);
+      console.log(chalk.red(error));
+      printCurrentReport(error);
+      cb(error);
+    } else {
+      postLog.numMigrated++;
+      console.log(chalk.green(successMsg));
+      printCurrentReport(successMsg);
+      cb(successMsg);
+    }
+  });
   // done posting, print out the final result
   var timestamp = moment(Date.now()).format("YYYYMMD-hh.mm.ssA");
   printFinalReport( generateFinalReport(timestamp) );
