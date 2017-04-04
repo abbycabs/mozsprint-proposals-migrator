@@ -10,7 +10,7 @@
 ***
 
 ## Want to Contribute?
-Join us at the Global Sprint, June 1-2 ([get your tickets now!](https://mozilla.github.io/global-sprint)). Leave a comment in this issue to let the project lead know you're interested in contributing during #mozsprint 2017!
+Join us at the Global Sprint, June 1-2 ([registration opens soon](https://mozilla.github.io/global-sprint)). Leave a comment in this issue to let the project lead know you're interested in contributing during #mozsprint 2017!
 
 ***
 
