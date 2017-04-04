@@ -57,7 +57,6 @@ app.post('/submit', function(req, res) {
     postToGitHub(
       {proposals: allProposals, count: numProposals, row: fetchOptions.start}
     , function(issue){
-        // res.send("Posted row #" + (fetchOptions.start+1));
         res.send("https://github.com/" + env.get("GITHUB_REPO") + "/issues/" + issue);
     });
   });
